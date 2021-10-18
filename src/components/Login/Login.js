@@ -13,50 +13,67 @@ const emailReducer = (state, action) => {
   }
   return { value: '', isValid: false }
 };
+const paswordReducer = (state, action) => {
+  if (action.type === 'User_Input') {
+    return { value: action.val, isValid: action.val.trim().length > 6}
+  }
+  if (action.type === 'User_Input') {
+    return { value: state.value, isValid: state.value.trim().length > 6}
+  }
+  return { value: '', isValid: false }
+};
 
 const Login = (props) => {
   // const [enteredEmail, setEnteredEmail] = useState('');
   // const [emailIsValid, setEmailIsValid] = useState();
-  const [enteredPassword, setEnteredPassword] = useState('');
-  const [passwordIsValid, setPasswordIsValid] = useState();
+  // const [enteredPassword, setEnteredPassword] = useState('');
+  // const [passwordIsValid, setPasswordIsValid] = useState();
   const [formIsValid, setFormIsValid] = useState(false);
 
   const [emailState, dispatchEmail] = useReducer(emailReducer, {
     value: '',
     isValid: false,
   });
-
+  const [passwordState, dispatchPassword] = useReducer(paswordReducer, {
+    value: '',
+    isValid: false,
+  })
   useEffect(() => {
     return () => {
 
     };
-  }, []);
+  }, []); 
 
-  // useEffect(() => {
-  //   const identifier = setTimeout(() => {
-  //     setFormIsValid(
-  //       enteredEmail.includes('@') && enteredPassword.trim().length > 6
-  //     );
-  //   }, 500);
+  // Object destructuring => Alias
+  const {isValid: emailIsValid} = emailState;
+  const {isValid: passwordIsValid} = passwordState;
 
-  //CleanupFunctions whenever conmponent unmounts from the DOM
-  //   return () => {
-  //     clearTimeout(identifier);
-  //   };
-  // }, [enteredEmail, enteredPassword]);
+  useEffect(() => {
+    const identifier = setTimeout(() => {
+      setFormIsValid(
+        emailIsValid && passwordIsValid
+      );
+    }, 500);
+
+  // CleanupFunctions whenever conmponent unmounts from the DOM
+    return () => {
+      clearTimeout(identifier);
+    };
+  }, [emailIsValid, passwordIsValid]);
 
   const emailChangeHandler = (event) => {
     dispatchEmail({type: 'User_Input', val: event.target.value});
     // setEnteredEmail(event.target.value);
-    setFormIsValid(
-      event.target.value.includes('@') && enteredPassword.trim().length > 6
-    );
+    // setFormIsValid(
+    //   event.target.value.includes('@') && passwordState.isValid
+    // );
   };
 
   const passwordChangeHandler = (event) => {
-    setEnteredPassword(event.target.value);
+    dispatchPassword({type: 'User_Input', val: event.target.value});
+
     setFormIsValid(
-      emailState.value.includes('@') && event.target.value.trim().length > 6
+      emailState.isValid && event.target.value.trim().length > 6
     );
   };
 
@@ -66,12 +83,13 @@ const Login = (props) => {
   };
 
   const validatePasswordHandler = () => {
-    setPasswordIsValid(enteredPassword.trim().length > 6);
+    dispatchPassword({type: 'Input_Blur'});
+    // setPasswordIsValid(enteredPassword.trim().length > 6);
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, enteredPassword);
+    props.onLogin(emailState.value, passwordState.value);
   };
 
   return (
@@ -91,14 +109,14 @@ const Login = (props) => {
           />
         </div>
         <div
-          className={`${classes.control} ${passwordIsValid === false ? classes.invalid : ''
+          className={`${classes.control} ${passwordState.isValid === false ? classes.invalid : ''
             }`}
         >
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
-            value={enteredPassword}
+            value={passwordState.value}
             onChange={passwordChangeHandler}
             onBlur={validatePasswordHandler}
           />
